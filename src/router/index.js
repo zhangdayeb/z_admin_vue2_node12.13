@@ -49,11 +49,48 @@ export const allowRouters = [
   },
   // 代理管理
   {
-    path: '/agent',
+    path: '/log',
     component: Home,
-    meta: { title: '用户管理' },
+    meta: { title: '日志' },
     children: [
-      { path: 'member', component: () => import('@/pages/agent/member'), meta: { title: '会员列表' } }
+      { path: 'agent_withdraw_log', component: () => import('@/pages/log/agent_withdraw_log'), meta: { title: '代理提现' } },
+      { path: 'fanshui_log', component: () => import('@/pages/log/fanshui_log'), meta: { title: '返水列表' } },
+      { path: 'game_log', component: () => import('@/pages/log/game_log'), meta: { title: '游戏记录' } },
+      { path: 'top_up_log', component: () => import('@/pages/log/top_up_log'), meta: { title: '充值列表' } },
+      { path: 'user_withdraw_log', component: () => import('@/pages/log/user_withdraw_log'), meta: { title: '用户提现' } }
+    ]
+  },
+  {
+    path: '/activity',
+    component: Home,
+    meta: { title: '活动' },
+    children: [
+      { path: 'activity_list', component: () => import('@/pages/activity/activity_list'), meta: { title: '活动列表' } }
+    ]
+  },
+  {
+    path: '/money',
+    component: Home,
+    meta: { title: '公司账号' },
+    children: [
+      { path: 'account', component: () => import('@/pages/money/account'), meta: { title: '公司账号' } }
+    ]
+  },
+  {
+    path: '/notice',
+    component: Home,
+    meta: { title: '通知' },
+    children: [
+      { path: 'notice_list', component: () => import('@/pages/notice/notice_list'), meta: { title: '通知列表' } }
+    ]
+  },
+  {
+    path: '/user',
+    component: Home,
+    meta: { title: '记录管理' },
+    children: [
+      { path: 'agent_list', component: () => import('@/pages/user/agent_list'), meta: { title: '代理列表' } },
+      { path: 'user_list', component: () => import('@/pages/user/user_list'), meta: { title: '会员列表' } }
     ]
   }
 ]
