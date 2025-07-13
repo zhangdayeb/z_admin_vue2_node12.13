@@ -53,14 +53,7 @@ export const allowRouters = [
     component: Home,
     meta: { title: '用户管理' },
     children: [
-      { path: 'member', component: () => import('@/pages/agent/member'), meta: { title: '会员列表' } },
-      { path: 'promotion', component: () => import('@/pages/agent/promotion'), meta: { title: '推广列表' } },
-      { path: 'statistical_reports', component: () => import('@/pages/agent/statistical_reports'), meta: { title: '财务统计' } },
-      { path: 'member_balance_record', component: () => import('@/pages/agent/member_balance_record'), meta: { title: '会员余额变动' } },
-      { path: 'member_game_record', component: () => import('@/pages/agent/member_game_record'), meta: { title: '会员游戏记录' } },
-      { path: 'member_deposit_record', component: () => import('@/pages/agent/member_deposit_record'), meta: { title: '会员存款记录' } },
-      { path: 'member_withdrawal_record', component: () => import('@/pages/agent/member_withdrawal_record'), meta: { title: '会员取款记录' } },
-      { path: 'member_rebate_record', component: () => import('@/pages/agent/member_rebate_record'), meta: { title: '会员返水记录' } }
+      { path: 'member', component: () => import('@/pages/agent/member'), meta: { title: '会员列表' } }
     ]
   }
 ]
