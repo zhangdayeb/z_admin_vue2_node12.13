@@ -133,6 +133,7 @@
             :on-success="handleUploadSuccess"
             :before-upload="beforeUpload"
             :show-file-list="false"
+            name="image"
             accept="image/*"
           >
             <div v-if="dialogForm.thumb_url" class="upload-preview">
@@ -150,11 +151,16 @@
               <div>点击上传图片</div>
             </div>
           </el-upload>
-          <div class="upload-tip">支持 jpg、png、gif 格式，大小不超过 5MB</div>
+          <div class="upload-tip">支持 jpg、png、gif、bmp、webp 格式，大小不超过 5MB</div>
         </el-form-item>
 
         <el-form-item label="活动内容" prop="content">
-          <div id="editor-container" style="height: 300px;"></div>
+          <quill-editor
+            ref="quillEditor"
+            v-model="dialogForm.content"
+            :options="editorOption"
+            style="height: 300px;"
+          />
         </el-form-item>
       </el-form>
 
@@ -200,10 +206,20 @@
 </template>
 
 <script>
-import { activityListApi, activityAddApi, activityEditApi, activityDelApi } from '@/api/adminApi'
+import { activityListApi, activityAddApi, activityEditApi, activityDelApi, activityTypeApi } from '@/api/adminApi'
+import { baseUrl } from '@/utils/config'
+
+// 引入富文本编辑器
+import { quillEditor } from 'vue-quill-editor'
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
 
 export default {
   name: 'ActivityList',
+  components: {
+    quillEditor
+  },
   data() {
     return {
       loading: false,
@@ -242,28 +258,72 @@ export default {
           { required: true, message: '请输入活动内容', trigger: 'blur' }
         ]
       },
-      activityTypes: [
-        { id: 1, name: '充值活动' },
-        { id: 2, name: '展示活动' },
-        { id: 3, name: '返水活动' }
-      ],
-      uploadUrl: process.env.VUE_APP_API_URL + '/info/upload',
+      activityTypes: [],
+      uploadUrl: baseUrl + '/info/upload',
       uploadHeaders: {
         'Authorization': 'Bearer ' + this.$store.getters.token
       },
-      editor: null
+      editor: null,
+      // 富文本编辑器配置
+      editorOption: {
+        theme: 'snow',
+        placeholder: '请输入活动内容...',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],        // 加粗 斜体 下划线 删除线
+            ['blockquote', 'code-block'],                     // 引用  代码块
+            [{ 'header': 1 }, { 'header': 2 }],               // 1、2 级标题
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],     // 有序、无序列表
+            [{ 'script': 'sub'}, { 'script': 'super' }],      // 上标/下标
+            [{ 'indent': '-1'}, { 'indent': '+1' }],          // 缩进
+            [{ 'direction': 'rtl' }],                         // 文本方向
+            [{ 'size': ['small', false, 'large', 'huge'] }],  // 字体大小
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],        // 标题
+            [{ 'color': [] }, { 'background': [] }],          // 字体颜色、字体背景颜色
+            [{ 'font': [] }],                                 // 字体种类
+            [{ 'align': [] }],                                // 对齐方式
+            ['clean'],                                        // 清除文本格式
+            ['link', 'image', 'video']                        // 链接、图片、视频
+          ]
+        }
+      }
     }
   },
   mounted() {
+    this.getActivityTypes()
     this.getList()
-    this.initEditor()
   },
   beforeDestroy() {
-    if (this.editor) {
-      this.editor.destroy()
-    }
+    // 清理编辑器
+    this.editor = null
   },
   methods: {
+    // 获取活动类型列表
+    async getActivityTypes() {
+      try {
+        const res = await activityTypeApi()
+        if (res.code === 200) {
+          this.activityTypes = res.data || []
+        } else {
+          console.warn('获取活动类型失败:', res.msg)
+          // 使用默认类型作为备用
+          this.activityTypes = [
+            { id: 1, name: '充值活动' },
+            { id: 2, name: '展示活动' },
+            { id: 3, name: '返水活动' }
+          ]
+        }
+      } catch (error) {
+        console.error('获取活动类型错误:', error)
+        // 使用默认类型作为备用
+        this.activityTypes = [
+          { id: 1, name: '充值活动' },
+          { id: 2, name: '展示活动' },
+          { id: 3, name: '返水活动' }
+        ]
+      }
+    },
+
     // 获取列表数据
     async getList() {
       this.loading = true
@@ -332,9 +392,8 @@ export default {
       this.dialogVisible = true
       this.$nextTick(() => {
         this.$refs.dialogForm.clearValidate()
-        if (this.editor) {
-          this.editor.setContents('')
-        }
+        // 清空富文本编辑器内容
+        this.dialogForm.content = ''
       })
     },
 
@@ -352,9 +411,7 @@ export default {
       this.dialogVisible = true
       this.$nextTick(() => {
         this.$refs.dialogForm.clearValidate()
-        if (this.editor) {
-          this.editor.setContents(row.content || '')
-        }
+        // 富文本编辑器会自动绑定内容
       })
     },
 
@@ -390,12 +447,8 @@ export default {
       this.$refs.dialogForm.validate(async (valid) => {
         if (!valid) return false
 
-        // 获取编辑器内容
-        if (this.editor) {
-          this.dialogForm.content = this.editor.getHTML()
-        }
-
-        if (!this.dialogForm.content || this.dialogForm.content.trim() === '<p></p>') {
+        // 验证富文本编辑器内容
+        if (!this.dialogForm.content || this.dialogForm.content.trim() === '' || this.dialogForm.content === '<p><br></p>') {
           this.$message.error('请输入活动内容')
           return false
         }
@@ -424,15 +477,27 @@ export default {
     handleDialogClose() {
       this.dialogVisible = false
       this.$refs.dialogForm.resetFields()
+      // 清空富文本编辑器内容
+      this.dialogForm.content = ''
     },
 
     // 文件上传前验证
     beforeUpload(file) {
-      const isImage = /^image\//.test(file.type)
+      // 检查文件类型
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp']
+      const isValidType = allowedTypes.includes(file.type)
+
+      // 检查文件大小（5MB限制）
       const isLt5M = file.size / 1024 / 1024 < 5
 
-      if (!isImage) {
-        this.$message.error('只能上传图片文件!')
+      // 检查文件扩展名
+      const fileName = file.name.toLowerCase()
+      const validExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
+      const fileExt = fileName.substring(fileName.lastIndexOf('.') + 1)
+      const isValidExt = validExts.includes(fileExt)
+
+      if (!isValidType || !isValidExt) {
+        this.$message.error('只能上传 JPG、JPEG、PNG、GIF、BMP、WebP 格式的图片!')
         return false
       }
       if (!isLt5M) {
@@ -449,31 +514,6 @@ export default {
         this.$message.success('图片上传成功')
       } else {
         this.$message.error(response.msg || '图片上传失败')
-      }
-    },
-
-    // 初始化富文本编辑器（这里使用示例，实际可以使用 quill、tinymce 等）
-    initEditor() {
-      // 这里是示例代码，需要根据实际使用的富文本编辑器来实现
-      // 比如使用 quill:
-      // import Quill from 'quill'
-      // this.editor = new Quill('#editor-container', { theme: 'snow' })
-
-      // 简单示例，实际项目中请使用专业的富文本编辑器
-      this.editor = {
-        setContents: (content) => {
-          const container = document.getElementById('editor-container')
-          if (container) {
-            container.innerHTML = `<textarea style="width:100%;height:100%;border:1px solid #ddd;padding:10px;">${content}</textarea>`
-          }
-        },
-        getHTML: () => {
-          const textarea = document.querySelector('#editor-container textarea')
-          return textarea ? textarea.value : ''
-        },
-        destroy: () => {
-          // 清理编辑器
-        }
       }
     }
   }
@@ -557,5 +597,73 @@ export default {
   max-height: 300px;
   overflow-y: auto;
   background: #fafafa;
+}
+
+/* 富文本编辑器样式 */
+.quill-editor {
+  line-height: normal;
+}
+
+.ql-editor {
+  min-height: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ql-snow .ql-tooltip::before {
+  content: "请输入链接地址:";
+}
+
+.ql-snow .ql-tooltip[data-mode=link]::before {
+  content: "请输入链接地址:";
+}
+
+.ql-snow .ql-tooltip[data-mode=video]::before {
+  content: "请输入视频地址:";
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item::before {
+  content: '14px';
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value=small]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value=small]::before {
+  content: '10px';
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value=large]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value=large]::before {
+  content: '18px';
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value=huge]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value=huge]::before {
+  content: '32px';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+  content: '文本';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+  content: '标题1';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+  content: '标题2';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+  content: '标题3';
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item::before {
+  content: '标准字体';
 }
 </style>

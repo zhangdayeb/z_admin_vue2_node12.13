@@ -18,11 +18,20 @@ import derectives from '@/directives'  // 注册全局指令
 import qs from 'qs'
 import minTool from '@/common/minTool'
 
+// 🆕 添加富文本编辑器
+import VueQuillEditor from 'vue-quill-editor'
+import 'quill/dist/quill.core.css'
+import 'quill/dist/quill.snow.css'
+import 'quill/dist/quill.bubble.css'
+
 Vue.use(components)
 Vue.use(derectives)
 Vue.use(vuescroll)
 Vue.use(VCharts)
 Vue.use(ElementUI, { size: 'small', zIndex: 3000 }) // 全局设置element组件默认大小
+
+// 🆕 注册富文本编辑器
+Vue.use(VueQuillEditor)
 
 Vue.prototype.$echarts = echarts
 Vue.prototype.$minTool = minTool
