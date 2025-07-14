@@ -41,18 +41,18 @@
             range-separator="至"
             start-placeholder="开始时间"
             end-placeholder="结束时间"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            format="yyyy-MM-dd HH:mm:ss"
+            value-format="yyyy-MM-dd HH:mm:ss"
             style="width: 350px;"
           />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
+            <i class="el-icon-search"></i>
             搜索
           </el-button>
           <el-button @click="handleReset">
-            <el-icon><Refresh /></el-icon>
+            <i class="el-icon-refresh"></i>
             重置
           </el-button>
         </el-form-item>
@@ -64,7 +64,7 @@
       <div class="operation-bar">
         <div class="left">
           <el-button type="primary" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
+            <i class="el-icon-plus"></i>
             新增记录
           </el-button>
           <el-button
@@ -72,13 +72,13 @@
             :disabled="selectedRows.length === 0"
             @click="handleBatchDelete"
           >
-            <el-icon><Delete /></el-icon>
+            <i class="el-icon-delete"></i>
             批量删除
           </el-button>
         </div>
         <div class="right">
           <el-button @click="loadData">
-            <el-icon><Refresh /></el-icon>
+            <i class="el-icon-refresh"></i>
             刷新
           </el-button>
         </div>
@@ -133,7 +133,7 @@
         <el-table-column type="selection" width="55" />
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column label="用户信息" width="180">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <div>
               <div>ID: {{ row.u_id }}</div>
               <div>用户名: {{ row.user_name || '-' }}</div>
@@ -142,23 +142,23 @@
           </template>
         </el-table-column>
         <el-table-column label="提现金额" width="120">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <span class="money-text">{{ formatMoney(row.money) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="手续费" width="100">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <span class="fee-text">{{ formatMoney(row.money_fee) }}</span>
           </template>
         </el-table-column>
         <el-table-column label="实际到账" width="120">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <span class="actual-text">{{ formatMoney(row.momey_actual) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="pay_type" label="支付方式" width="100" />
         <el-table-column label="收款信息" width="200">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <div v-if="row.u_bank_name || row.u_back_card">
               <div>银行: {{ row.u_bank_name || '-' }}</div>
               <div>卡号: {{ row.u_back_card || '-' }}</div>
@@ -168,7 +168,7 @@
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <el-tag :type="getStatusType(row.status)">
               {{ getStatusText(row.status) }}
             </el-tag>
@@ -179,7 +179,7 @@
         <el-table-column prop="admin_name" label="审核人" width="100" />
         <el-table-column prop="msg" label="备注" width="150" show-overflow-tooltip />
         <el-table-column label="操作" width="180" fixed="right">
-          <template #default="{ row }">
+          <template slot-scope="{ row }">
             <el-button
               v-if="row.status == 0"
               type="success"
@@ -218,13 +218,13 @@
       <!-- 分页 -->
       <div class="pagination-container">
         <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
+          :current-page="pagination.page"
+          :page-size="pagination.pageSize"
           :total="pagination.total"
           :page-sizes="[10, 20, 50, 100]"
           layout="total, sizes, prev, pager, next, jumper"
-          @size-change="loadData"
-          @current-change="loadData"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
         />
       </div>
     </el-card>
@@ -232,7 +232,7 @@
     <!-- 新增/编辑弹窗 -->
     <el-dialog
       :title="dialogTitle"
-      v-model="dialogVisible"
+      :visible.sync="dialogVisible"
       width="600px"
       :close-on-click-modal="false"
     >
@@ -299,20 +299,18 @@
           />
         </el-form-item>
       </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
-            确定
-          </el-button>
-        </span>
-      </template>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">
+          确定
+        </el-button>
+      </div>
     </el-dialog>
 
     <!-- 审核弹窗 -->
     <el-dialog
       :title="auditTitle"
-      v-model="auditDialogVisible"
+      :visible.sync="auditDialogVisible"
       width="500px"
       :close-on-click-modal="false"
     >
@@ -331,22 +329,17 @@
           />
         </el-form-item>
       </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="auditDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleAuditSubmit" :loading="auditLoading">
-            确定
-          </el-button>
-        </span>
-      </template>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="auditDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleAuditSubmit" :loading="auditLoading">
+          确定
+        </el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
 
-<script setup>
-import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Plus, Delete } from '@element-plus/icons-vue'
+<script>
 import {
   userWithdrawLogListApi,
   userWithdrawLogAddApi,
@@ -354,285 +347,306 @@ import {
   userWithdrawLogDelApi
 } from '@/api/adminApi'
 
-// 响应式数据
-const loading = ref(false)
-const tableData = ref([])
-const selectedRows = ref([])
-const statistics = ref({})
+export default {
+  name: 'UserWithdrawLog',
+  data() {
+    return {
+      loading: false,
+      tableData: [],
+      selectedRows: [],
+      statistics: {},
 
-// 搜索表单
-const searchForm = reactive({
-  user_id: '',
-  user_name: '',
-  status: '',
-  pay_type: '',
-  admin_uid: ''
-})
+      // 搜索表单
+      searchForm: {
+        user_id: '',
+        user_name: '',
+        status: '',
+        pay_type: '',
+        admin_uid: '',
+        start_time: '',
+        end_time: ''
+      },
 
-const dateRange = ref([])
+      dateRange: [],
 
-// 分页
-const pagination = reactive({
-  page: 1,
-  pageSize: 20,
-  total: 0
-})
+      // 分页
+      pagination: {
+        page: 1,
+        pageSize: 20,
+        total: 0
+      },
 
-// 弹窗相关
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const submitLoading = ref(false)
-const formRef = ref(null)
+      // 弹窗相关
+      dialogVisible: false,
+      isEdit: false,
+      submitLoading: false,
 
-// 审核弹窗
-const auditDialogVisible = ref(false)
-const auditLoading = ref(false)
-const auditForm = reactive({
-  id: '',
-  status: 1,
-  msg: ''
-})
+      // 审核弹窗
+      auditDialogVisible: false,
+      auditLoading: false,
+      auditForm: {
+        id: '',
+        status: 1,
+        msg: ''
+      },
 
-// 表单数据
-const formData = reactive({
-  id: '',
-  u_id: '',
-  money: 0,
-  money_fee: 0,
-  momey_actual: 0,
-  pay_type: '',
-  u_bank_name: '',
-  u_back_card: '',
-  u_back_user_name: '',
-  u_ip: '',
-  u_city: '',
-  msg: ''
-})
+      // 表单数据
+      formData: {
+        id: '',
+        u_id: '',
+        money: 0,
+        money_fee: 0,
+        momey_actual: 0,
+        pay_type: '',
+        u_bank_name: '',
+        u_back_card: '',
+        u_back_user_name: '',
+        u_ip: '',
+        u_city: '',
+        msg: ''
+      },
 
-// 表单验证规则
-const formRules = {
-  u_id: [
-    { required: true, message: '请输入用户ID', trigger: 'blur' }
-  ],
-  money: [
-    { required: true, message: '请输入提现金额', trigger: 'blur' },
-    { type: 'number', min: 0.01, message: '提现金额必须大于0', trigger: 'blur' }
-  ]
-}
-
-// 计算属性
-const dialogTitle = computed(() => {
-  return isEdit.value ? '编辑提现记录' : '新增提现记录'
-})
-
-const auditTitle = computed(() => {
-  return auditForm.status == 1 ? '审核通过确认' : '审核拒绝确认'
-})
-
-// 监听时间范围变化
-watch(dateRange, (newVal) => {
-  if (newVal && newVal.length === 2) {
-    searchForm.start_time = newVal[0]
-    searchForm.end_time = newVal[1]
-  } else {
-    searchForm.start_time = ''
-    searchForm.end_time = ''
-  }
-})
-
-// 方法
-const loadData = async () => {
-  loading.value = true
-  try {
-    const params = {
-      page: pagination.page,
-      pageSize: pagination.pageSize,
-      ...searchForm
-    }
-
-    const response = await userWithdrawLogListApi(params)
-    if (response.code === 200) {
-      tableData.value = response.data.list || []
-      pagination.total = response.data.total || 0
-      statistics.value = response.data.statistics || {}
-    } else {
-      ElMessage.error(response.message || '获取数据失败')
-    }
-  } catch (error) {
-    ElMessage.error('获取数据失败')
-    console.error('Load data error:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const handleSearch = () => {
-  pagination.page = 1
-  loadData()
-}
-
-const handleReset = () => {
-  Object.keys(searchForm).forEach(key => {
-    searchForm[key] = ''
-  })
-  dateRange.value = []
-  pagination.page = 1
-  loadData()
-}
-
-const handleAdd = () => {
-  isEdit.value = false
-  resetForm()
-  dialogVisible.value = true
-}
-
-const handleEdit = (row) => {
-  isEdit.value = true
-  Object.keys(formData).forEach(key => {
-    formData[key] = row[key] || ''
-  })
-  dialogVisible.value = true
-}
-
-const handleApprove = (row) => {
-  auditForm.id = row.id
-  auditForm.status = 1
-  auditForm.msg = ''
-  auditDialogVisible.value = true
-}
-
-const handleReject = (row) => {
-  auditForm.id = row.id
-  auditForm.status = 2
-  auditForm.msg = ''
-  auditDialogVisible.value = true
-}
-
-const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  try {
-    await formRef.value.validate()
-    submitLoading.value = true
-
-    const api = isEdit.value ? userWithdrawLogEditApi : userWithdrawLogAddApi
-    const response = await api(formData)
-
-    if (response.code === 200) {
-      ElMessage.success(response.message || '操作成功')
-      dialogVisible.value = false
-      loadData()
-    } else {
-      ElMessage.error(response.message || '操作失败')
-    }
-  } catch (error) {
-    console.error('Submit error:', error)
-  } finally {
-    submitLoading.value = false
-  }
-}
-
-const handleAuditSubmit = async () => {
-  if (auditForm.status == 2 && !auditForm.msg.trim()) {
-    ElMessage.warning('拒绝审核时必须填写备注')
-    return
-  }
-
-  auditLoading.value = true
-  try {
-    const response = await userWithdrawLogEditApi(auditForm)
-    if (response.code === 200) {
-      ElMessage.success(response.message || '审核成功')
-      auditDialogVisible.value = false
-      loadData()
-    } else {
-      ElMessage.error(response.message || '审核失败')
-    }
-  } catch (error) {
-    ElMessage.error('审核失败')
-    console.error('Audit error:', error)
-  } finally {
-    auditLoading.value = false
-  }
-}
-
-const handleDelete = async (ids) => {
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除这${ids.length}条记录吗？删除后将退还用户余额。`,
-      '确认删除',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
+      // 表单验证规则
+      formRules: {
+        u_id: [
+          { required: true, message: '请输入用户ID', trigger: 'blur' }
+        ],
+        money: [
+          { required: true, message: '请输入提现金额', trigger: 'blur' },
+          { type: 'number', min: 0.01, message: '提现金额必须大于0', trigger: 'blur' }
+        ]
       }
-    )
-
-    const response = await userWithdrawLogDelApi({ ids })
-    if (response.code === 200) {
-      ElMessage.success(response.message || '删除成功')
-      loadData()
-      selectedRows.value = []
-    } else {
-      ElMessage.error(response.message || '删除失败')
     }
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('删除失败')
-      console.error('Delete error:', error)
+  },
+
+  computed: {
+    dialogTitle() {
+      return this.isEdit ? '编辑提现记录' : '新增提现记录'
+    },
+
+    auditTitle() {
+      return this.auditForm.status == 1 ? '审核通过确认' : '审核拒绝确认'
+    }
+  },
+
+  watch: {
+    dateRange(newVal) {
+      if (newVal && newVal.length === 2) {
+        this.searchForm.start_time = newVal[0]
+        this.searchForm.end_time = newVal[1]
+      } else {
+        this.searchForm.start_time = ''
+        this.searchForm.end_time = ''
+      }
+    }
+  },
+
+  mounted() {
+    this.loadData()
+  },
+
+  methods: {
+    async loadData() {
+      this.loading = true
+      try {
+        const params = {
+          page: this.pagination.page,
+          pageSize: this.pagination.pageSize,
+          ...this.searchForm
+        }
+
+        const response = await userWithdrawLogListApi(params)
+        if (response.code === 200) {
+          this.tableData = response.data.list || []
+          this.pagination.total = response.data.total || 0
+          this.statistics = response.data.statistics || {}
+        } else {
+          this.$message.error(response.message || '获取数据失败')
+        }
+      } catch (error) {
+        this.$message.error('获取数据失败')
+        console.error('Load data error:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleSearch() {
+      this.pagination.page = 1
+      this.loadData()
+    },
+
+    handleReset() {
+      Object.keys(this.searchForm).forEach(key => {
+        this.searchForm[key] = ''
+      })
+      this.dateRange = []
+      this.pagination.page = 1
+      this.loadData()
+    },
+
+    handleAdd() {
+      this.isEdit = false
+      this.resetForm()
+      this.dialogVisible = true
+    },
+
+    handleEdit(row) {
+      this.isEdit = true
+      Object.keys(this.formData).forEach(key => {
+        this.formData[key] = row[key] || ''
+      })
+      this.dialogVisible = true
+    },
+
+    handleApprove(row) {
+      this.auditForm.id = row.id
+      this.auditForm.status = 1
+      this.auditForm.msg = ''
+      this.auditDialogVisible = true
+    },
+
+    handleReject(row) {
+      this.auditForm.id = row.id
+      this.auditForm.status = 2
+      this.auditForm.msg = ''
+      this.auditDialogVisible = true
+    },
+
+    handleSubmit() {
+      this.$refs.formRef.validate(async (valid) => {
+        if (valid) {
+          this.submitLoading = true
+          try {
+            const api = this.isEdit ? userWithdrawLogEditApi : userWithdrawLogAddApi
+            const response = await api(this.formData)
+
+            if (response.code === 200) {
+              this.$message.success(response.message || '操作成功')
+              this.dialogVisible = false
+              this.loadData()
+            } else {
+              this.$message.error(response.message || '操作失败')
+            }
+          } catch (error) {
+            this.$message.error('操作失败')
+            console.error('Submit error:', error)
+          } finally {
+            this.submitLoading = false
+          }
+        }
+      })
+    },
+
+    async handleAuditSubmit() {
+      if (this.auditForm.status == 2 && !this.auditForm.msg.trim()) {
+        this.$message.warning('拒绝审核时必须填写备注')
+        return
+      }
+
+      this.auditLoading = true
+      try {
+        const response = await userWithdrawLogEditApi(this.auditForm)
+        if (response.code === 200) {
+          this.$message.success(response.message || '审核成功')
+          this.auditDialogVisible = false
+          this.loadData()
+        } else {
+          this.$message.error(response.message || '审核失败')
+        }
+      } catch (error) {
+        this.$message.error('审核失败')
+        console.error('Audit error:', error)
+      } finally {
+        this.auditLoading = false
+      }
+    },
+
+    async handleDelete(ids) {
+      try {
+        await this.$confirm(
+          `确定要删除这${ids.length}条记录吗？删除后将退还用户余额。`,
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }
+        )
+
+        const response = await userWithdrawLogDelApi({ ids })
+        if (response.code === 200) {
+          this.$message.success(response.message || '删除成功')
+          this.loadData()
+          this.selectedRows = []
+        } else {
+          this.$message.error(response.message || '删除失败')
+        }
+      } catch (error) {
+        if (error !== 'cancel') {
+          this.$message.error('删除失败')
+          console.error('Delete error:', error)
+        }
+      }
+    },
+
+    handleBatchDelete() {
+      const ids = this.selectedRows.map(row => row.id)
+      this.handleDelete(ids)
+    },
+
+    handleSelectionChange(selection) {
+      this.selectedRows = selection
+    },
+
+    handleSizeChange(val) {
+      this.pagination.pageSize = val
+      this.pagination.page = 1
+      this.loadData()
+    },
+
+    handleCurrentChange(val) {
+      this.pagination.page = val
+      this.loadData()
+    },
+
+    resetForm() {
+      Object.keys(this.formData).forEach(key => {
+        if (typeof this.formData[key] === 'number') {
+          this.formData[key] = 0
+        } else {
+          this.formData[key] = ''
+        }
+      })
+      if (this.$refs.formRef) {
+        this.$refs.formRef.clearValidate()
+      }
+    },
+
+    formatMoney(amount) {
+      if (!amount && amount !== 0) return '0.00'
+      return Number(amount).toFixed(2)
+    },
+
+    getStatusType(status) {
+      const statusMap = {
+        0: 'warning',
+        1: 'success',
+        2: 'danger'
+      }
+      return statusMap[status] || 'info'
+    },
+
+    getStatusText(status) {
+      const statusMap = {
+        0: '待审核',
+        1: '已通过',
+        2: '已拒绝'
+      }
+      return statusMap[status] || '未知'
     }
   }
 }
-
-const handleBatchDelete = () => {
-  const ids = selectedRows.value.map(row => row.id)
-  handleDelete(ids)
-}
-
-const handleSelectionChange = (selection) => {
-  selectedRows.value = selection
-}
-
-const resetForm = () => {
-  Object.keys(formData).forEach(key => {
-    if (typeof formData[key] === 'number') {
-      formData[key] = 0
-    } else {
-      formData[key] = ''
-    }
-  })
-  if (formRef.value) {
-    formRef.value.clearValidate()
-  }
-}
-
-const formatMoney = (amount) => {
-  if (!amount && amount !== 0) return '0.00'
-  return Number(amount).toFixed(2)
-}
-
-const getStatusType = (status) => {
-  const statusMap = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger'
-  }
-  return statusMap[status] || 'info'
-}
-
-const getStatusText = (status) => {
-  const statusMap = {
-    0: '待审核',
-    1: '已通过',
-    2: '已拒绝'
-  }
-  return statusMap[status] || '未知'
-}
-
-// 生命周期
-onMounted(() => {
-  loadData()
-})
 </script>
 
 <style scoped>
