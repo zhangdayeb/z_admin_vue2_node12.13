@@ -10,6 +10,16 @@ export function agentWithdrawLogListApi(params) {
   })
 }
 
+// 代理提现记录 新增
+export function agentWithdrawLogAddApi(params) {
+  return axios.post({
+    url: '/log/agent_withdraw_log_add',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
 // 代理提现记录 编辑
 export function agentWithdrawLogEditApi(params) {
   return axios.post({
@@ -34,6 +44,16 @@ export function agentWithdrawLogDelApi(params) {
 export function userWithdrawLogListApi(params) {
   return axios.post({
     url: '/log/user_withdraw_log_list',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
+// 会员提现记录 新增
+export function userWithdrawLogAddApi(params) {
+  return axios.post({
+    url: '/log/user_withdraw_log_add',
     data: params
   }).then((res) => {
     return res
@@ -70,6 +90,16 @@ export function topUpLogListApi(params) {
   })
 }
 
+// 会员存款记录 新增
+export function topUpLogAddApi(params) {
+  return axios.post({
+    url: '/log/top_up_log_add',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
 // 会员存款记录 编辑
 export function topUpLogEditApi(params) {
   return axios.post({
@@ -100,6 +130,26 @@ export function fanshuiLogApi(params) {
   })
 }
 
+// 会员返水记录 新增
+export function fanshuiLogAddApi(params) {
+  return axios.post({
+    url: '/log/fanshui_log_add',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
+// 会员返水记录 编辑
+export function fanshuiLogEditApi(params) {
+  return axios.post({
+    url: '/log/fanshui_log_edit',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
 // 会员返水记录 删除
 export function fanshuiLogDelApi(params) {
   return axios.post({
@@ -114,6 +164,26 @@ export function fanshuiLogDelApi(params) {
 export function gameLogApi(params) {
   return axios.post({
     url: '/log/game_log',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
+// 会员游戏记录 新增
+export function gameLogAddApi(params) {
+  return axios.post({
+    url: '/log/game_log_add',
+    data: params
+  }).then((res) => {
+    return res
+  })
+}
+
+// 会员游戏记录 编辑
+export function gameLogEditApi(params) {
+  return axios.post({
+    url: '/log/game_log_edit',
     data: params
   }).then((res) => {
     return res
