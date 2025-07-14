@@ -209,6 +209,7 @@ export function userDelApi(params) {
     return res
   })
 }
+
 // 活动列表 类型
 export function activityTypeApi(params) {
   return axios.post({
