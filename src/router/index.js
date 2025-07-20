@@ -60,6 +60,44 @@ export const allowRouters = [
       { path: 'user_withdraw_log', component: () => import('@/pages/log/user_withdraw_log'), meta: { title: '用户提现' } }
     ]
   },
+  // 4. Telegram管理模块
+  {
+    path: '/telegram',
+    component: Home,
+    meta: {
+      title: 'Telegram管理'
+    },
+    children: [
+      {
+        path: 'redPacketList',
+        component: () => import('@/pages/hongbao/redpacket/RedPacketList'),
+        meta: {
+          title: '红包管理'
+        }
+      },
+      {
+        path: 'redPacketRecords',
+        component: () => import('@/pages/hongbao/redpacket/RecordList'),
+        meta: {
+          title: '领取记录'
+        }
+      },
+      {
+        path: 'advertisements',
+        component: () => import('@/pages/hongbao/telegram/AdvertisementList'),
+        meta: {
+          title: '广告管理'
+        }
+      },
+      {
+        path: 'config',
+        component: () => import('@/pages/hongbao/telegram/Config'),
+        meta: {
+          title: '配置管理'
+        }
+      }
+    ]
+  },
   {
     path: '/activity',
     component: Home,
