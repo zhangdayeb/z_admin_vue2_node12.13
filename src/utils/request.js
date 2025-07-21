@@ -33,7 +33,7 @@ axios.interceptors.request.use(
     config.headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': token ? `Bearer ${token}` : '', // JWT标准格式
-      'group_prefix': group_prefix, // 从配置文件读取
+      'group-prefix': group_prefix, // 从配置文件读取
       ...config.headers // 保留可能的自定义headers
     }
 
