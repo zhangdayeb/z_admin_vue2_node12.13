@@ -278,7 +278,7 @@ export default {
 
     // 返回列表页
     goBack() {
-      this.$router.push('/hongbao/telegram/BotList')
+      this.$router.push('/telegram/BotList')
     }
   }
 }

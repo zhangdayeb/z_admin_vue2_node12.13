@@ -218,7 +218,7 @@ export default {
     editBot(row) {
       // 跳转到配置页面，传递机器人ID
       this.$router.push({
-        path: '/hongbao/telegram/config',
+        path: '/telegram/config',
         query: { bot_id: row.id }
       })
     },
