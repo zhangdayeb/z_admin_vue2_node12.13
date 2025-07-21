@@ -1,7 +1,7 @@
 import axios from "axios"
 import store from '../store'
 import router from '../router'
-import { baseUrl, group_prefix } from "./config.js"
+import { baseUrl, getGroupPrefix } from "./config.js"
 import { Message } from "element-ui"
 import qs from 'qs'
 import { getToken, removeToken } from "@/utils/auth"  // 导入统一的auth工具函数
@@ -33,7 +33,7 @@ axios.interceptors.request.use(
     config.headers = {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': token ? `Bearer ${token}` : '', // JWT标准格式
-      'group-prefix': group_prefix, // 从配置文件读取
+      'group-prefix': getGroupPrefix(), // 动态获取
       ...config.headers // 保留可能的自定义headers
     }
 

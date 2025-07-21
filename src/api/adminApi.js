@@ -410,12 +410,4 @@ export function noticeListDelApi(params) {
   })
 }
 
-// 集团信息获取
-export function setGroupApi(params) {
-  return axios.post({
-    url: '/set/group',
-    data: params
-  }).then((res) => {
-    return res
-  })
-}
+

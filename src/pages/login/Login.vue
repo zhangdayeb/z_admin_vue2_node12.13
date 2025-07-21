@@ -53,7 +53,6 @@
       let path = '/dashboard/console'
       let router = this.$router
       this.$store.dispatch('worktab/worktabRemoveAll', { path, router})
-      localStorage.clear()
       this.tokenLogin()
     },
     methods: {
