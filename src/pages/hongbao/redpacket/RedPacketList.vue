@@ -328,7 +328,7 @@ export default {
         const params = this.buildQueryParams()
         const res = await getRedPacketListApi(params)
 
-        if (res.code === 1) {
+        if (res.code === 200) {
           this.redPacketList = res.data.data || []
           this.totalCount = parseInt(res.data.total) || 0
           this.currentPage = parseInt(res.data.current_page) || 1
@@ -402,7 +402,7 @@ export default {
     async handleViewDetail(row) {
       try {
         const res = await getRedPacketDetailApi({ id: row.id })
-        if (res.code === 1) {
+        if (res.code === 200) {
           this.detailDialog.data = res.data
           this.detailDialog.visible = true
         } else {

@@ -185,6 +185,19 @@ export function getBotConfigApi() {
 }
 
 /**
+ * 获取机器人列表
+ * @returns {Promise}
+ */
+export function getBotListApi() {
+  return axios.post({
+    url: '/telegram/bot/bot_list',
+    data: {},
+  }).then((res) => {
+    return res
+  })
+}
+
+/**
  * 更新机器人配置
  * @param {Object} data 配置信息
  * @param {string} data.welcome 欢迎消息，必填

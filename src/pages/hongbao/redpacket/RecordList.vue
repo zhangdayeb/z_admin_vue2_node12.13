@@ -284,7 +284,7 @@ export default {
         const params = this.buildQueryParams()
         const res = await getRedPacketRecordsApi(params)
 
-        if (res.code === 1) {
+        if (res.code === 200) {
           this.recordList = res.data.data || []
           this.totalCount = parseInt(res.data.total) || 0
           this.currentPage = parseInt(res.data.current_page) || 1

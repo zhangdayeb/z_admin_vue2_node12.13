@@ -640,7 +640,7 @@ export default {
         const params = this.buildQueryParams()
         const res = await getAdvertisementListApi(params)
 
-        if (res.code === 1) {
+        if (res.code === 200) {
           this.advertisementList = res.data.list || []
           this.totalCount = parseInt(res.data.total) || 0
           this.currentPage = parseInt(res.data.current_page) || 1
@@ -722,7 +722,7 @@ export default {
     async handleEdit(row) {
       try {
         const res = await getAdvertisementDetailApi({ id: row.id })
-        if (res.code === 1) {
+        if (res.code === 200) {
           this.editDialog.isEdit = true
           this.editForm = {
             id: res.data.id,
@@ -766,7 +766,7 @@ export default {
       }).then(async () => {
         try {
           const res = await deleteAdvertisementApi({ id: row.id })
-          if (res.code === 1) {
+          if (res.code === 200) {
             this.$message.success('删除成功')
             this.loadData()
           } else {
@@ -783,7 +783,7 @@ export default {
     async handleViewDetail(row) {
       try {
         const res = await getAdvertisementDetailApi({ id: row.id })
-        if (res.code === 1) {
+        if (res.code === 200) {
           this.detailDialog.data = res.data
           this.detailDialog.visible = true
         } else {
@@ -882,7 +882,7 @@ export default {
               res = await createAdvertisementApi(data)
             }
 
-            if (res.code === 1) {
+            if (res.code === 200) {
               this.$message.success(this.editDialog.isEdit ? '更新成功' : '创建成功')
               this.editDialog.visible = false
               this.loadData()
