@@ -478,7 +478,7 @@ import {
   deleteAdvertisementApi
 } from '@/api/telegramApi'
 
-import { uploadImageUrl } from '@/utils/config.js'
+import { baseUrl } from '@/utils/config.js'
 
 export default {
   name: 'AdvertisementList',
@@ -568,7 +568,7 @@ export default {
       imageUploading: false,
       uploadProgress: 0,
       uploadConfig: {
-        action: uploadImageUrl
+        action: baseUrl + '/info/upload',
       },
       uploadHeaders: {
         // 如果需要token，在这里设置

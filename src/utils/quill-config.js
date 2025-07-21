@@ -1,7 +1,7 @@
-import {uploadImageUrl } from "@/utils/config.js";
+import {baseUrl } from "@/utils/config.js";
 /*富文本编辑图片上传配置*/
 const uploadConfig = {
-    action:  uploadImageUrl,  // 必填参数 图片上传地址
+    action:  baseUrl + '/info/upload', // 必填参数 图片上传地址
     methods: 'POST',  // 必填参数 图片上传方式
     name: 'file',  // 必填参数 文件的参数名
     size: 5120,  // 可选参数   图片大小，单位为Kb, 1M = 1024Kb
