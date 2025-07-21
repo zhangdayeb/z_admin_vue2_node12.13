@@ -1,8 +1,18 @@
 <template>
   <div class="config-container">
     <div class="page-header">
-      <h2>机器人配置管理</h2>
-      <p>配置Telegram机器人的欢迎消息和按钮</p>
+      <div class="header-left" v-if="isEditMode">
+        <el-button
+          type="text"
+          icon="el-icon-arrow-left"
+          @click="goBack"
+          class="back-btn"
+        >
+          返回列表
+        </el-button>
+      </div>
+      <h2>{{ pageTitle }}</h2>
+      <p>{{ pageDescription }}</p>
       <div class="tip-notice">
         <i class="el-icon-info"></i>
         <span>欢迎词如果需要换行请插入 [换行] 程序会自动替换成telegram 里面的换行</span>
@@ -81,6 +91,9 @@
           <el-button @click="loadConfig">
             重新加载
           </el-button>
+          <el-button @click="goBack" v-if="isEditMode">
+            返回列表
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -99,7 +112,10 @@ export default {
       loading: false,
       saving: false,
 
-      // 配置数据
+      // 当前编辑的机器人ID
+      currentBotId: null,
+
+      // 配置数据 - 只保留原有字段
       configData: {
         welcome: '',
         button1_name: '',
@@ -126,19 +142,59 @@ export default {
     }
   },
 
+  computed: {
+    // 是否为编辑模式
+    isEditMode() {
+      return !!this.currentBotId
+    },
+
+    // 页面标题
+    pageTitle() {
+      return this.isEditMode ? '编辑机器人配置' : '机器人配置管理'
+    },
+
+    // 页面描述
+    pageDescription() {
+      return this.isEditMode
+        ? `正在编辑机器人 ID: ${this.currentBotId} 的配置`
+        : '配置Telegram机器人的欢迎消息和按钮'
+    }
+  },
+
   mounted() {
-    this.loadConfig()
+    this.initPage()
+  },
+
+  // 监听路由变化
+  watch: {
+    '$route'(to, from) {
+      this.initPage()
+    }
   },
 
   methods: {
+    // 初始化页面
+    initPage() {
+      // 从URL参数获取bot_id
+      this.currentBotId = this.$route.query.bot_id || null
+      this.loadConfig()
+    },
+
     // 加载配置
     async loadConfig() {
       this.loading = true
       try {
-        const res = await getBotConfigApi()
+        const params = {}
+
+        // 如果有bot_id，传递给后端
+        if (this.currentBotId) {
+          params.bot_id = this.currentBotId
+        }
+
+        const res = await getBotConfigApi(params)
 
         if (res.code === 200) {
-          // 如果有数据，使用返回的数据
+          // 如果有数据，使用返回的数据 - 只使用原有字段
           if (res.data) {
             this.configData = {
               welcome: res.data.welcome || '',
@@ -178,10 +234,31 @@ export default {
         }
 
         this.saving = true
-        const res = await updateBotConfigApi(this.configData)
+
+        const saveData = { ...this.configData }
+
+        // 如果有bot_id，添加到保存数据中
+        if (this.currentBotId) {
+          saveData.bot_id = this.currentBotId
+        }
+
+        const res = await updateBotConfigApi(saveData)
 
         if (res.code === 200) {
           this.$message.success('配置保存成功')
+
+          // 如果是编辑模式，询问是否返回列表
+          if (this.isEditMode) {
+            this.$confirm('配置保存成功，是否返回机器人列表？', '提示', {
+              confirmButtonText: '返回列表',
+              cancelButtonText: '继续编辑',
+              type: 'success'
+            }).then(() => {
+              this.goBack()
+            }).catch(() => {
+              // 用户选择继续编辑，不做任何操作
+            })
+          }
         } else {
           this.$message.error(res.message || '保存配置失败')
         }
@@ -197,6 +274,11 @@ export default {
     resetForm() {
       this.$refs.configForm.resetFields()
       this.loadConfig()
+    },
+
+    // 返回列表页
+    goBack() {
+      this.$router.push('/hongbao/telegram/BotList')
     }
   }
 }
@@ -209,6 +291,20 @@ export default {
 
 .page-header {
   margin-bottom: 20px;
+}
+
+.header-left {
+  margin-bottom: 15px;
+}
+
+.back-btn {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #409eff;
+}
+
+.back-btn:hover {
+  color: #66b1ff;
 }
 
 .page-header h2 {
@@ -235,14 +331,23 @@ export default {
   margin-right: 8px;
 }
 
-.button-config-section {
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.bot-info-section,
+.button-config-section,
+.advanced-config-section {
   margin: 30px 0;
   padding: 20px;
   background-color: #f8f9fa;
   border-radius: 4px;
 }
 
-.button-config-section h3 {
+.bot-info-section h3,
+.button-config-section h3,
+.advanced-config-section h3 {
   margin: 0 0 20px 0;
   color: #303133;
   font-size: 16px;
@@ -266,9 +371,33 @@ export default {
 .el-card ::v-deep .el-card__header {
   border-bottom: 1px solid #f0f0f0;
   padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .el-card ::v-deep .el-card__body {
   padding: 20px;
+}
+
+/* 响应式处理 */
+@media (max-width: 768px) {
+  .config-container {
+    padding: 10px;
+  }
+
+  .bot-info-section,
+  .button-config-section,
+  .advanced-config-section {
+    padding: 15px;
+  }
+
+  .el-row {
+    margin: 0;
+  }
+
+  .el-col {
+    padding: 0 5px;
+  }
 }
 </style>

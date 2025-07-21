@@ -1,209 +1,252 @@
 <template>
-  <div class="config-container">
+  <div class="bot-list-container">
     <div class="page-header">
-      <h2>机器人配置管理</h2>
-      <p>配置Telegram机器人的欢迎消息和按钮</p>
-      <div class="tip-notice">
-        <i class="el-icon-info"></i>
-        <span>欢迎词如果需要换行请插入 [换行] 程序会自动替换成telegram 里面的换行</span>
-      </div>
+      <h2>机器人列表</h2>
+      <p>管理Telegram机器人配置</p>
     </div>
 
-    <el-card v-loading="loading">
-      <div slot="header">
-        <span>配置信息</span>
-        <el-button
-          style="float: right; padding: 3px 0"
-          type="text"
-          @click="resetForm"
-        >
-          重置
-        </el-button>
-      </div>
-
-      <el-form
-        ref="configForm"
-        :model="configData"
-        :rules="rules"
-        label-width="120px"
-        size="medium"
-      >
-        <!-- 欢迎消息 -->
-        <el-form-item label="欢迎消息" prop="welcome">
+    <!-- 搜索区域 -->
+    <el-card class="search-card">
+      <el-form :inline="true" :model="searchForm" class="search-form">
+        <el-form-item label="搜索">
           <el-input
-            v-model="configData.welcome"
-            type="textarea"
-            :rows="6"
-            placeholder="请输入欢迎消息内容"
-            maxlength="1000"
-            show-word-limit
-          />
-          <div class="form-tip">
-            注意：使用 [换行] 来表示换行
-          </div>
-        </el-form-item>
-
-        <!-- 按钮配置 -->
-        <div class="button-config-section">
-          <h3>按钮配置</h3>
-
-          <el-row :gutter="20" v-for="i in 6" :key="i">
-            <el-col :span="12">
-              <el-form-item :label="`按钮${i}名称`">
-                <el-input
-                  v-model="configData[`button${i}_name`]"
-                  placeholder="请输入按钮名称"
-                  maxlength="200"
-                />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item :label="`按钮${i}链接`">
-                <el-input
-                  v-model="configData[`button${i}_url`]"
-                  placeholder="请输入按钮链接"
-                  maxlength="200"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-
-        <!-- 操作按钮 -->
-        <el-form-item>
-          <el-button
-            type="primary"
-            @click="saveConfig"
-            :loading="saving"
+            v-model="searchForm.search"
+            placeholder="请输入机器人名称、用户名或ID"
+            style="width: 300px;"
+            clearable
+            @keyup.enter.native="handleSearch"
           >
-            保存配置
-          </el-button>
-          <el-button @click="loadConfig">
-            重新加载
-          </el-button>
+            <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="resetSearch">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
+    <!-- 数据表格 -->
+    <el-card class="table-card">
+      <div slot="header" class="card-header">
+        <span>机器人列表</span>
+        <div class="header-actions">
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-refresh"
+            @click="loadBotList"
+          >
+            刷新
+          </el-button>
+        </div>
+      </div>
 
+      <el-table
+        v-loading="loading"
+        :data="botList"
+        style="width: 100%"
+        stripe
+        border
+      >
+        <el-table-column prop="id" label="ID" width="80" align="center" />
+
+        <el-table-column prop="tg_bot_name" label="机器人名称" min-width="150">
+          <template slot-scope="scope">
+            <span v-if="scope.row.tg_bot_name">{{ scope.row.tg_bot_name }}</span>
+            <span v-else class="text-muted">未设置</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="tg_bot_username" label="用户名" min-width="150">
+          <template slot-scope="scope">
+            <span v-if="scope.row.tg_bot_username">@{{ scope.row.tg_bot_username }}</span>
+            <span v-else class="text-muted">未设置</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="tg_bot_id" label="机器人ID" min-width="120">
+          <template slot-scope="scope">
+            <span v-if="scope.row.tg_bot_id">{{ scope.row.tg_bot_id }}</span>
+            <span v-else class="text-muted">未设置</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="tg_bot_token" label="Token" min-width="120">
+          <template slot-scope="scope">
+            <span v-if="scope.row.tg_bot_token">{{ scope.row.tg_bot_token }}</span>
+            <span v-else class="text-muted">未设置</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="配置状态" width="120" align="center">
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.has_welcome ? 'success' : 'warning'"
+              size="small"
+            >
+              {{ scope.row.has_welcome ? '已配置' : '未配置' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="按钮数量" width="100" align="center">
+          <template slot-scope="scope">
+            <el-badge :value="scope.row.button_count" class="badge-item">
+              <el-button size="mini" type="text">{{ scope.row.button_count }}个</el-button>
+            </el-badge>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="welcome" label="欢迎消息" min-width="200">
+          <template slot-scope="scope">
+            <span v-if="scope.row.welcome" class="welcome-text">{{ scope.row.welcome }}</span>
+            <span v-else class="text-muted">未设置</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="updated_at" label="更新时间" width="160" align="center">
+          <template slot-scope="scope">
+            <span v-if="scope.row.updated_at">{{ formatTime(scope.row.updated_at) }}</span>
+            <span v-else class="text-muted">-</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="操作" width="120" align="center" fixed="right">
+          <template slot-scope="scope">
+            <el-button
+              type="primary"
+              size="mini"
+              @click="editBot(scope.row)"
+            >
+              编辑配置
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="pagination-wrapper">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pagination.page"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="pagination.limit"
+          :total="pagination.total"
+          layout="total, sizes, prev, pager, next, jumper"
+        />
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script>
-import { getBotConfigApi, updateBotConfigApi } from '@/api/telegramApi'
+import { getBotListApi } from '@/api/telegramApi'
+import dayjs from 'dayjs'
 
 export default {
-  name: 'Config',
+  name: 'BotList',
   data() {
     return {
       loading: false,
-      saving: false,
 
-      // 配置数据
-      configData: {
-        welcome: '',
-        button1_name: '',
-        button1_url: '',
-        button2_name: '',
-        button2_url: '',
-        button3_name: '',
-        button3_url: '',
-        button4_name: '',
-        button4_url: '',
-        button5_name: '',
-        button5_url: '',
-        button6_name: '',
-        button6_url: ''
+      // 搜索表单
+      searchForm: {
+        search: ''
       },
 
-      // 表单验证规则
-      rules: {
-        welcome: [
-          { required: true, message: '请输入欢迎消息', trigger: 'blur' },
-          { min: 10, message: '欢迎消息至少10个字符', trigger: 'blur' }
-        ]
+      // 机器人列表
+      botList: [],
+
+      // 分页信息
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pages: 0
       }
     }
   },
 
   mounted() {
-    this.loadConfig()
+    this.loadBotList()
   },
 
   methods: {
-    // 加载配置
-    async loadConfig() {
+    // 加载机器人列表
+    async loadBotList() {
       this.loading = true
       try {
-        const res = await getBotConfigApi()
+        const params = {
+          page: this.pagination.page,
+          limit: this.pagination.limit,
+          search: this.searchForm.search
+        }
+
+        const res = await getBotListApi(params)
 
         if (res.code === 200) {
-          // 如果有数据，使用返回的数据
-          if (res.data) {
-            this.configData = {
-              welcome: res.data.welcome || '',
-              button1_name: res.data.button1_name || '',
-              button1_url: res.data.button1_url || '',
-              button2_name: res.data.button2_name || '',
-              button2_url: res.data.button2_url || '',
-              button3_name: res.data.button3_name || '',
-              button3_url: res.data.button3_url || '',
-              button4_name: res.data.button4_name || '',
-              button4_url: res.data.button4_url || '',
-              button5_name: res.data.button5_name || '',
-              button5_url: res.data.button5_url || '',
-              button6_name: res.data.button6_name || '',
-              button6_url: res.data.button6_url || ''
-            }
-          }
-          this.$message.success('配置加载成功')
+          this.botList = res.data.list || []
+          this.pagination.total = res.data.total || 0
+          this.pagination.pages = res.data.pages || 0
         } else {
-          this.$message.error(res.message || '加载配置失败')
+          this.$message.error(res.message || '获取机器人列表失败')
         }
       } catch (error) {
-        console.error('加载配置失败:', error)
+        console.error('获取机器人列表失败:', error)
         this.$message.error('网络错误，请稍后重试')
       } finally {
         this.loading = false
       }
     },
 
-    // 保存配置
-    async saveConfig() {
-      try {
-        // 表单验证
-        const valid = await this.$refs.configForm.validate()
-        if (!valid) {
-          return
-        }
-
-        this.saving = true
-        const res = await updateBotConfigApi(this.configData)
-
-        if (res.code === 200) {
-          this.$message.success('配置保存成功')
-        } else {
-          this.$message.error(res.message || '保存配置失败')
-        }
-      } catch (error) {
-        console.error('保存配置失败:', error)
-        this.$message.error('网络错误，请稍后重试')
-      } finally {
-        this.saving = false
-      }
+    // 搜索
+    handleSearch() {
+      this.pagination.page = 1 // 重置到第一页
+      this.loadBotList()
     },
 
-    // 重置表单
-    resetForm() {
-      this.$refs.configForm.resetFields()
-      this.loadConfig()
+    // 重置搜索
+    resetSearch() {
+      this.searchForm.search = ''
+      this.pagination.page = 1
+      this.loadBotList()
+    },
+
+    // 编辑机器人配置
+    editBot(row) {
+      // 跳转到配置页面，传递机器人ID
+      this.$router.push({
+        path: '/hongbao/telegram/config',
+        query: { bot_id: row.id }
+      })
+    },
+
+    // 分页 - 每页条数改变
+    handleSizeChange(val) {
+      this.pagination.limit = val
+      this.pagination.page = 1
+      this.loadBotList()
+    },
+
+    // 分页 - 当前页改变
+    handleCurrentChange(val) {
+      this.pagination.page = val
+      this.loadBotList()
+    },
+
+    // 格式化时间
+    formatTime(time) {
+      if (!time) return '-'
+      return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
     }
   }
 }
 </script>
 
 <style scoped>
-.config-container {
+.bot-list-container {
   padding: 20px;
 }
 
@@ -217,50 +260,89 @@ export default {
 }
 
 .page-header p {
-  margin: 0 0 10px 0;
+  margin: 0;
   color: #909399;
   font-size: 14px;
 }
 
-.tip-notice {
-  padding: 12px 16px;
-  background-color: #e6f7ff;
-  border: 1px solid #91d5ff;
-  border-radius: 4px;
-  color: #1890ff;
+.search-card {
+  margin-bottom: 20px;
+}
+
+.search-form {
+  margin: 0;
+}
+
+.table-card {
+  border-radius: 8px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.text-muted {
+  color: #909399;
+  font-style: italic;
+}
+
+.welcome-text {
+  color: #606266;
+  line-height: 1.4;
+}
+
+.badge-item {
+  margin-right: 0;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* 表格样式优化 */
+.el-table {
   font-size: 14px;
 }
 
-.tip-notice i {
-  margin-right: 8px;
-}
-
-.button-config-section {
-  margin: 30px 0;
-  padding: 20px;
+.el-table th {
   background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.button-config-section h3 {
-  margin: 0 0 20px 0;
   color: #303133;
-  font-size: 16px;
   font-weight: 600;
 }
 
-.form-tip {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 5px;
+.el-table td {
+  padding: 12px 0;
 }
 
-.el-form-item {
-  margin-bottom: 22px;
+/* 响应式处理 */
+@media (max-width: 768px) {
+  .bot-list-container {
+    padding: 10px;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .search-form .el-form-item {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
 }
 
+/* 卡片样式 */
 .el-card {
   border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .el-card ::v-deep .el-card__header {

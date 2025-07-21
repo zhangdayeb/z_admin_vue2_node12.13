@@ -90,10 +90,17 @@ export const allowRouters = [
         }
       },
       {
-        path: 'config',
+        path: 'BotList',
         component: () => import('@/pages/hongbao/telegram/BotList'),
         meta: {
           title: '机器人列表'
+        }
+      },
+      {
+        path: 'config',
+        component: () => import('@/pages/hongbao/telegram/config'),
+        meta: {
+          title: '机器人配置'
         }
       }
     ]
