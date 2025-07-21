@@ -67,6 +67,11 @@
             <span style="color: #E6A23C">{{ scope.row.money_rebate.toFixed(2) }}</span>
           </template>
         </el-table-column>
+        <el-table-column prop="money_fanyong" label="返佣余额" width="120">
+          <template slot-scope="scope">
+            <span style="color: #E6A23C">{{ scope.row.money_fanyong.toFixed(2) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="money_total_recharge" label="累计充值" width="120">
           <template slot-scope="scope">
             {{ scope.row.money_total_recharge.toFixed(2) }}
@@ -155,6 +160,11 @@
               <el-input-number v-model="formData.money_rebate" :precision="2" :min="0" style="width: 100%" />
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item label="返佣余额" prop="money_fanyong">
+              <el-input-number v-model="formData.money_fanyong" :precision="2" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -233,6 +243,7 @@ export default {
         status: 1,
         money: 0,
         money_rebate: 0,
+        money_fanyong: 0,
         agent_id: 0,
         user_agent_id_1: null,
         user_agent_id_2: null,
@@ -334,6 +345,7 @@ export default {
         status: 1,
         money: 0,
         money_rebate: 0,
+        money_fanyong: 0,
         agent_id: 0,
         user_agent_id_1: null,
         user_agent_id_2: null,
@@ -359,6 +371,7 @@ export default {
         status: row.status,
         money: row.money,
         money_rebate: row.money_rebate,
+        money_fanyong: row.money_fanyong,
         agent_id: row.agent_id,
         user_agent_id_1: row.user_agent_id_1,
         user_agent_id_2: row.user_agent_id_2,

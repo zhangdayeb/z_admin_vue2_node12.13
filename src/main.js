@@ -46,7 +46,7 @@ Vue.config.productionTip = false
 async function initConfig() {
   localStorage.clear()
   try {
-    const res = await setGroupApi({})
+    const res = await setGroupApi({url:window.location.href})
     if (res.code === 200 ) {
       setGroupPrefix(res.data.group_prefix)
     }
