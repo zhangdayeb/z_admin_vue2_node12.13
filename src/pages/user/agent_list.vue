@@ -21,6 +21,9 @@
             <el-option label="无限级代理" :value="2" />
           </el-select>
         </el-form-item>
+        <el-form-item label="Telegram用户名">
+          <el-input v-model="searchForm.tg_username" placeholder="请输入TG用户名" clearable style="width: 180px" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">查询</el-button>
           <el-button @click="handleReset">重置</el-button>
@@ -58,11 +61,29 @@
             <span style="color: #E6A23C">{{ scope.row.money_total.toFixed(2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="agent_id" label="直接上级" width="90" />
+        <el-table-column prop="fanyong_proportion" label="返佣比例" width="100">
+          <template slot-scope="scope">
+            <span style="color: #409EFF">{{ scope.row.fanyong_proportion.toFixed(2) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="agent_id_1" label="一级代理" width="90" />
         <el-table-column prop="agent_id_2" label="二级代理" width="90" />
         <el-table-column prop="agent_id_3" label="三级代理" width="90" />
         <el-table-column prop="invitation_code" label="邀请码" width="100" />
+        <el-table-column prop="tg_username" label="TG用户名" width="120">
+          <template slot-scope="scope">
+            <span v-if="scope.row.tg_username">{{ scope.row.tg_username }}</span>
+            <span v-else style="color: #C0C4CC">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="tg_first_name" label="TG姓名" width="120">
+          <template slot-scope="scope">
+            <span v-if="scope.row.tg_first_name || scope.row.tg_last_name">
+              {{ (scope.row.tg_first_name || '') + ' ' + (scope.row.tg_last_name || '') }}
+            </span>
+            <span v-else style="color: #C0C4CC">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="create_time" label="创建时间" width="150" />
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
@@ -87,7 +108,7 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogType === 'add' ? '新增代理' : '编辑代理'" :visible.sync="dialogVisible" width="700px">
+    <el-dialog :title="dialogType === 'add' ? '新增代理' : '编辑代理'" :visible.sync="dialogVisible" width="800px">
       <el-form :model="formData" :rules="formRules" ref="agentForm" label-width="120px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -133,8 +154,8 @@
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="直接上级ID" prop="agent_id">
-              <el-input-number v-model="formData.agent_id" :min="0" style="width: 100%" />
+            <el-form-item label="返佣比例" prop="fanyong_proportion">
+              <el-input-number v-model="formData.fanyong_proportion" :precision="2" :min="0" :max="100" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -152,6 +173,40 @@
           <el-col :span="12">
             <el-form-item label="三级代理ID" prop="agent_id_3">
               <el-input-number v-model="formData.agent_id_3" :min="0" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- Telegram 信息 -->
+        <el-divider content-position="left">Telegram 信息</el-divider>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="Telegram ID" prop="tg_id">
+              <el-input v-model="formData.tg_id" placeholder="请输入Telegram ID" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="Telegram用户名" prop="tg_username">
+              <el-input v-model="formData.tg_username" placeholder="请输入Telegram用户名" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="名字" prop="tg_first_name">
+              <el-input v-model="formData.tg_first_name" placeholder="请输入名字" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="姓氏" prop="tg_last_name">
+              <el-input v-model="formData.tg_last_name" placeholder="请输入姓氏" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="所属群组" prop="tg_crowd_ids">
+              <el-input v-model="formData.tg_crowd_ids" placeholder="请输入Telegram群组ID，多个用逗号分隔" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -181,7 +236,8 @@ export default {
         agent_name: '',
         invitation_code: '',
         status: '',
-        agent_type: ''
+        agent_type: '',
+        tg_username: ''
       },
 
       // 分页
@@ -202,11 +258,16 @@ export default {
         status: 1,
         money: 0,
         money_total: 0,
-        agent_id: 0,
+        fanyong_proportion: 0,
         agent_id_1: 0,
         agent_id_2: null,
         agent_id_3: null,
-        invitation_code: ''
+        invitation_code: '',
+        tg_id: '',
+        tg_username: '',
+        tg_first_name: '',
+        tg_last_name: '',
+        tg_crowd_ids: ''
       },
 
       // 表单验证规则
@@ -220,6 +281,24 @@ export default {
         ],
         status: [
           { required: true, message: '请选择状态', trigger: 'change' }
+        ],
+        fanyong_proportion: [
+          { type: 'number', min: 0, max: 100, message: '返佣比例必须在0-100之间', trigger: 'blur' }
+        ],
+        tg_id: [
+          { max: 200, message: 'Telegram ID长度不能超过200字符', trigger: 'blur' }
+        ],
+        tg_username: [
+          { max: 200, message: 'Telegram用户名长度不能超过200字符', trigger: 'blur' }
+        ],
+        tg_first_name: [
+          { max: 200, message: '名字长度不能超过200字符', trigger: 'blur' }
+        ],
+        tg_last_name: [
+          { max: 200, message: '姓氏长度不能超过200字符', trigger: 'blur' }
+        ],
+        tg_crowd_ids: [
+          { max: 200, message: '群组ID长度不能超过200字符', trigger: 'blur' }
         ]
       }
     }
@@ -264,7 +343,8 @@ export default {
         agent_name: '',
         invitation_code: '',
         status: '',
-        agent_type: ''
+        agent_type: '',
+        tg_username: ''
       }
       this.pagination.page = 1
       this.loadData()
@@ -293,11 +373,16 @@ export default {
         status: 1,
         money: 0,
         money_total: 0,
-        agent_id: 0,
+        fanyong_proportion: 0,
         agent_id_1: 0,
         agent_id_2: null,
         agent_id_3: null,
-        invitation_code: ''
+        invitation_code: '',
+        tg_id: '',
+        tg_username: '',
+        tg_first_name: '',
+        tg_last_name: '',
+        tg_crowd_ids: ''
       }
       this.dialogVisible = true
       this.$nextTick(() => {
@@ -315,11 +400,16 @@ export default {
         status: row.status,
         money: row.money,
         money_total: row.money_total,
-        agent_id: row.agent_id,
+        fanyong_proportion: row.fanyong_proportion,
         agent_id_1: row.agent_id_1,
         agent_id_2: row.agent_id_2,
         agent_id_3: row.agent_id_3,
-        invitation_code: row.invitation_code || ''
+        invitation_code: row.invitation_code || '',
+        tg_id: row.tg_id || '',
+        tg_username: row.tg_username || '',
+        tg_first_name: row.tg_first_name || '',
+        tg_last_name: row.tg_last_name || '',
+        tg_crowd_ids: row.tg_crowd_ids || ''
       }
       this.dialogVisible = true
       this.$nextTick(() => {
